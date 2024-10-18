@@ -25,7 +25,7 @@ End-to-end testing is not conducted on these modules, as they are individual com
 ## Features
 
 - utilization of terratest for robust validation.
-- supports creation of multiple Service Bus namespaces.
+- supports creation of multiple service bus namespaces.
 - enables multiple authorization rules per namespace.
 - supports multiple queues with individual authorization rules.
 - enables creation of multiple topics and subscriptions.
