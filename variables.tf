@@ -1,5 +1,5 @@
 variable "config" {
-  description = "automation account details"
+  description = "contains service bus namespace configuration"
   type        = any
 }
 
