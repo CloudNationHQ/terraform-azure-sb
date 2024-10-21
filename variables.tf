@@ -1,5 +1,5 @@
 variable "config" {
-  description = "contains service bus namespace configuration1"
+  description = "contains service bus namespace configuration"
   type        = any
 }
 
