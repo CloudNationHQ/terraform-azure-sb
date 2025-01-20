@@ -10,6 +10,9 @@ locals {
         all-events = {
           max_delivery_count = 10
           lock_duration      = "PT5M"
+          client_scoped_subscription = {
+            is_client_scoped_subscription_shareable = true
+          }
           rules = {
             all_messages = {
               filter_type = "SqlFilter"
