@@ -9,7 +9,10 @@ resource "azurerm_servicebus_namespace" "ns" {
   public_network_access_enabled = try(var.config.public_network_access_enabled, true)
   minimum_tls_version           = try(var.config.minimum_tls_version, "1.2")
   local_auth_enabled            = try(var.config.local_auth_enabled, true)
-  tags                          = try(var.config.tags, var.tags, null)
+
+  tags = try(
+    var.config.tags, var.tags, null
+  )
 }
 
 # namespace authorization rules
@@ -53,6 +56,8 @@ resource "azurerm_servicebus_queue" "queue" {
   forward_dead_lettered_messages_to       = try(each.value.forward_dead_lettered_messages_to, null)
   dead_lettering_on_message_expiration    = try(each.value.dead_lettering_on_message_expiration, false)
   duplicate_detection_history_time_window = try(each.value.duplicate_detection_history_time_window, null)
+  status                                  = try(each.value.status, "Active")
+  forward_to                              = try(each.value.forward_to, null)
 }
 
 # servicebus queue authorization rules
@@ -138,14 +143,29 @@ resource "azurerm_servicebus_subscription" "subscription" {
     ]) : "${sub.topic_key}_${sub.sub_key}" => sub
   }
 
-  name                                 = each.value.sub_name
-  topic_id                             = azurerm_servicebus_topic.topic[each.value.topic_key].id
-  max_delivery_count                   = try(each.value.sub.max_delivery_count, 10)
-  lock_duration                        = try(each.value.sub.lock_duration, "PT1M")
-  default_message_ttl                  = try(each.value.sub.default_message_ttl, null)
-  auto_delete_on_idle                  = try(each.value.sub.auto_delete_on_idle, null)
-  requires_session                     = try(each.value.sub.requires_session, false)
-  dead_lettering_on_message_expiration = try(each.value.sub.dead_lettering_on_message_expiration, false)
+  name                                      = each.value.sub_name
+  topic_id                                  = azurerm_servicebus_topic.topic[each.value.topic_key].id
+  max_delivery_count                        = try(each.value.sub.max_delivery_count, 10)
+  lock_duration                             = try(each.value.sub.lock_duration, "PT1M")
+  default_message_ttl                       = try(each.value.sub.default_message_ttl, null)
+  auto_delete_on_idle                       = try(each.value.sub.auto_delete_on_idle, null)
+  requires_session                          = try(each.value.sub.requires_session, false)
+  dead_lettering_on_message_expiration      = try(each.value.sub.dead_lettering_on_message_expiration, false)
+  dead_lettering_on_filter_evaluation_error = try(each.value.sub.dead_lettering_on_filter_evaluation_error, true)
+  client_scoped_subscription_enabled        = try(each.value.sub.client_scoped_subscription_enabled, false)
+  forward_dead_lettered_messages_to         = try(each.value.sub.forward_dead_lettered_messages_to, null)
+  batched_operations_enabled                = try(each.value.sub.batched_operations_enabled, false)
+  status                                    = try(each.value.sub.status, "Active")
+  forward_to                                = try(each.value.sub.forward_to, null)
+
+  dynamic "client_scoped_subscription" {
+    for_each = try(each.value.sub.client_scoped_subscription, null) != null ? [each.value.sub.client_scoped_subscription] : []
+
+    content {
+      client_id                               = try(client_scoped_subscription.value.client_id, null)
+      is_client_scoped_subscription_shareable = try(client_scoped_subscription.value.is_client_scoped_subscription_shareable, false)
+    }
+  }
 }
 
 # service bus subscription rules
@@ -183,6 +203,7 @@ resource "azurerm_servicebus_subscription_rule" "rule" {
       reply_to_session_id = try(correlation_filter.value.reply_to_session_id, null)
       session_id          = try(correlation_filter.value.session_id, null)
       to                  = try(correlation_filter.value.to, null)
+      properties          = try(correlation_filter.value.properties, {})
     }
   }
 
