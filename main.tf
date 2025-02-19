@@ -10,6 +10,41 @@ resource "azurerm_servicebus_namespace" "ns" {
   minimum_tls_version           = try(var.config.minimum_tls_version, "1.2")
   local_auth_enabled            = try(var.config.local_auth_enabled, true)
 
+  dynamic "identity" {
+    for_each = try(var.config.identity, null) != null ? [var.config.identity] : []
+    content {
+      type         = identity.value.type
+      identity_ids = try(identity.value.identity_ids, null)
+    }
+  }
+
+  dynamic "customer_managed_key" {
+    for_each = try(var.config.customer_managed_key, null) != null ? [var.config.customer_managed_key] : []
+    content {
+      key_vault_key_id                  = customer_managed_key.value.key_vault_key_id
+      identity_id                       = customer_managed_key.value.identity_id
+      infrastructure_encryption_enabled = try(customer_managed_key.value.infrastructure_encryption_enabled, false)
+    }
+  }
+
+  dynamic "network_rule_set" {
+    for_each = try(var.config.network_rule_set, null) != null ? [var.config.network_rule_set] : []
+    content {
+      default_action                = try(network_rule_set.value.default_action, "Allow")
+      public_network_access_enabled = try(network_rule_set.value.public_network_access_enabled, true)
+      trusted_services_allowed      = try(network_rule_set.value.trusted_services_allowed, false)
+      ip_rules                      = try(network_rule_set.value.ip_rules, [])
+
+      dynamic "network_rules" {
+        for_each = try(network_rule_set.value.network_rules, [])
+        content {
+          subnet_id                            = network_rule.value.subnet_id
+          ignore_missing_vnet_service_endpoint = try(network_rule.value.ignore_missing_vnet_service_endpoint, false)
+        }
+      }
+    }
+  }
+
   tags = try(
     var.config.tags, var.tags, null
   )
