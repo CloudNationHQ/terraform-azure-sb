@@ -1,45 +1,58 @@
 # namespace
 resource "azurerm_servicebus_namespace" "ns" {
+  resource_group_name = coalesce(
+    lookup(
+      var.config, "resource_group", null
+    ), var.resource_group
+  )
+
+  location = coalesce(
+    lookup(var.config, "location", null
+    ), var.location
+  )
+
   name                          = var.config.name
-  resource_group_name           = coalesce(lookup(var.config, "resource_group", null), var.resource_group)
-  location                      = coalesce(lookup(var.config, "location", null), var.location)
-  sku                           = try(var.config.sku, "Standard")
-  capacity                      = try(var.config.capacity, null)
-  premium_messaging_partitions  = try(var.config.premium_messaging_partitions, null)
-  public_network_access_enabled = try(var.config.public_network_access_enabled, true)
-  minimum_tls_version           = try(var.config.minimum_tls_version, "1.2")
-  local_auth_enabled            = try(var.config.local_auth_enabled, true)
+  sku                           = var.config.sku
+  capacity                      = var.config.capacity
+  premium_messaging_partitions  = var.config.premium_messaging_partitions
+  public_network_access_enabled = var.config.public_network_access_enabled
+  minimum_tls_version           = var.config.minimum_tls_version
+  local_auth_enabled            = var.config.local_auth_enabled
 
   dynamic "identity" {
     for_each = try(var.config.identity, null) != null ? [var.config.identity] : []
+
     content {
       type         = identity.value.type
-      identity_ids = try(identity.value.identity_ids, null)
+      identity_ids = identity.value.identity_ids
     }
   }
 
   dynamic "customer_managed_key" {
     for_each = try(var.config.customer_managed_key, null) != null ? [var.config.customer_managed_key] : []
+
     content {
       key_vault_key_id                  = customer_managed_key.value.key_vault_key_id
       identity_id                       = customer_managed_key.value.identity_id
-      infrastructure_encryption_enabled = try(customer_managed_key.value.infrastructure_encryption_enabled, false)
+      infrastructure_encryption_enabled = customer_managed_key.value.infrastructure_encryption_enabled
     }
   }
 
   dynamic "network_rule_set" {
     for_each = try(var.config.network_rule_set, null) != null ? [var.config.network_rule_set] : []
+
     content {
-      default_action                = try(network_rule_set.value.default_action, "Allow")
-      public_network_access_enabled = try(network_rule_set.value.public_network_access_enabled, true)
-      trusted_services_allowed      = try(network_rule_set.value.trusted_services_allowed, false)
-      ip_rules                      = try(network_rule_set.value.ip_rules, [])
+      default_action                = network_rule_set.value.default_action
+      public_network_access_enabled = network_rule_set.value.public_network_access_enabled
+      trusted_services_allowed      = network_rule_set.value.trusted_services_allowed
+      ip_rules                      = network_rule_set.value.ip_rules
 
       dynamic "network_rules" {
         for_each = try(network_rule_set.value.network_rules, [])
+
         content {
           subnet_id                            = network_rule.value.subnet_id
-          ignore_missing_vnet_service_endpoint = try(network_rule.value.ignore_missing_vnet_service_endpoint, false)
+          ignore_missing_vnet_service_endpoint = network_rule.value.ignore_missing_vnet_service_endpoint
         }
       }
     }
@@ -56,14 +69,14 @@ resource "azurerm_servicebus_namespace_authorization_rule" "auth_rule" {
     var.config, "authorization_rules", {}
   )
 
-  name = try(
+  name = coalesce(
     each.value.name, join("-", [var.naming.servicebus_namespace_authorization_rule, each.key])
   )
 
   namespace_id = azurerm_servicebus_namespace.ns.id
-  listen       = try(each.value.listen, false)
-  send         = try(each.value.send, false)
-  manage       = try(each.value.manage, false)
+  listen       = each.value.listen
+  send         = each.value.send
+  manage       = each.value.manage
 }
 
 # servicebus queues
@@ -72,27 +85,27 @@ resource "azurerm_servicebus_queue" "queue" {
     var.config, "queues", {}
   )
 
-  name = try(
+  name = coalesce(
     each.value.name, join("-", [var.naming.servicebus_queue, each.key])
   )
 
   namespace_id                            = azurerm_servicebus_namespace.ns.id
-  lock_duration                           = try(each.value.lock_duration, "PT1M")
-  max_size_in_megabytes                   = try(each.value.max_size_in_megabytes, null)
-  max_delivery_count                      = try(each.value.max_delivery_count, null)
-  max_message_size_in_kilobytes           = try(each.value.max_message_size_in_kilobytes, null)
-  partitioning_enabled                    = try(each.value.partitioning_enabled, false)
-  express_enabled                         = try(each.value.express_enabled, false)
-  requires_session                        = try(each.value.requires_session, false)
-  auto_delete_on_idle                     = try(each.value.auto_delete_on_idle, null)
-  default_message_ttl                     = try(each.value.default_message_ttl, null)
-  batched_operations_enabled              = try(each.value.batched_operations_enabled, false)
-  requires_duplicate_detection            = try(each.value.requires_duplicate_detection, false)
-  forward_dead_lettered_messages_to       = try(each.value.forward_dead_lettered_messages_to, null)
-  dead_lettering_on_message_expiration    = try(each.value.dead_lettering_on_message_expiration, false)
-  duplicate_detection_history_time_window = try(each.value.duplicate_detection_history_time_window, null)
-  status                                  = try(each.value.status, "Active")
-  forward_to                              = try(each.value.forward_to, null)
+  lock_duration                           = each.value.lock_duration
+  max_size_in_megabytes                   = each.value.max_size_in_megabytes
+  max_delivery_count                      = each.value.max_delivery_count
+  max_message_size_in_kilobytes           = each.value.max_message_size_in_kilobytes
+  partitioning_enabled                    = each.value.partitioning_enabled
+  express_enabled                         = each.value.express_enabled
+  requires_session                        = each.value.requires_session
+  auto_delete_on_idle                     = each.value.auto_delete_on_idle
+  default_message_ttl                     = each.value.default_message_ttl
+  batched_operations_enabled              = each.value.batched_operations_enabled
+  requires_duplicate_detection            = each.value.requires_duplicate_detection
+  forward_dead_lettered_messages_to       = each.value.forward_dead_lettered_messages_to
+  dead_lettering_on_message_expiration    = each.value.dead_lettering_on_message_expiration
+  duplicate_detection_history_time_window = each.value.duplicate_detection_history_time_window
+  status                                  = each.value.status
+  forward_to                              = each.value.forward_to
 }
 
 # servicebus queue authorization rules
@@ -112,9 +125,9 @@ resource "azurerm_servicebus_queue_authorization_rule" "queue_auth_rule" {
 
   name     = each.value.rule_name
   queue_id = azurerm_servicebus_queue.queue[each.value.queue_key].id
-  listen   = try(each.value.rule.listen, false)
-  send     = try(each.value.rule.send, false)
-  manage   = try(each.value.rule.manage, false)
+  listen   = each.value.rule.listen
+  send     = each.value.rule.send
+  manage   = each.value.rule.manage
 }
 
 # servicebus topics
@@ -123,22 +136,22 @@ resource "azurerm_servicebus_topic" "topic" {
     var.config, "topics", {}
   )
 
-  name = try(
+  name = coalesce(
     each.value.name, join("-", [var.naming.servicebus_topic, each.key])
   )
 
   namespace_id                            = azurerm_servicebus_namespace.ns.id
-  duplicate_detection_history_time_window = try(each.value.duplicate_detection_history_time_window, null)
-  requires_duplicate_detection            = try(each.value.requires_duplicate_detection, false)
-  batched_operations_enabled              = try(each.value.batched_operations_enabled, false)
-  default_message_ttl                     = try(each.value.default_message_ttl, null)
-  status                                  = try(each.value.status, "Active")
-  auto_delete_on_idle                     = try(each.value.auto_delete_on_idle, null)
-  express_enabled                         = try(each.value.express_enabled, false)
-  max_message_size_in_kilobytes           = try(each.value.max_message_size_in_kilobytes, null)
-  partitioning_enabled                    = try(each.value.partitioning_enabled, false)
-  max_size_in_megabytes                   = try(each.value.max_size_in_megabytes, null)
-  support_ordering                        = try(each.value.support_ordering, false)
+  duplicate_detection_history_time_window = each.value.duplicate_detection_history_time_window
+  requires_duplicate_detection            = each.value.requires_duplicate_detection
+  batched_operations_enabled              = each.value.batched_operations_enabled
+  default_message_ttl                     = each.value.default_message_ttl
+  status                                  = each.value.status
+  auto_delete_on_idle                     = each.value.auto_delete_on_idle
+  express_enabled                         = each.value.express_enabled
+  max_message_size_in_kilobytes           = each.value.max_message_size_in_kilobytes
+  partitioning_enabled                    = each.value.partitioning_enabled
+  max_size_in_megabytes                   = each.value.max_size_in_megabytes
+  support_ordering                        = each.value.support_ordering
 }
 
 # servicebus topic authorization rules
@@ -158,9 +171,9 @@ resource "azurerm_servicebus_topic_authorization_rule" "topic_auth_rule" {
 
   name     = each.value.rule_name
   topic_id = azurerm_servicebus_topic.topic[each.value.topic_key].id
-  listen   = try(each.value.rule.listen, false)
-  send     = try(each.value.rule.send, false)
-  manage   = try(each.value.rule.manage, false)
+  listen   = each.value.rule.listen
+  send     = each.value.rule.send
+  manage   = each.value.rule.manage
 }
 
 # service bus topic subscriptions
@@ -180,25 +193,25 @@ resource "azurerm_servicebus_subscription" "subscription" {
 
   name                                      = each.value.sub_name
   topic_id                                  = azurerm_servicebus_topic.topic[each.value.topic_key].id
-  max_delivery_count                        = try(each.value.sub.max_delivery_count, 10)
-  lock_duration                             = try(each.value.sub.lock_duration, "PT1M")
-  default_message_ttl                       = try(each.value.sub.default_message_ttl, null)
-  auto_delete_on_idle                       = try(each.value.sub.auto_delete_on_idle, null)
-  requires_session                          = try(each.value.sub.requires_session, false)
-  dead_lettering_on_message_expiration      = try(each.value.sub.dead_lettering_on_message_expiration, false)
-  dead_lettering_on_filter_evaluation_error = try(each.value.sub.dead_lettering_on_filter_evaluation_error, true)
-  client_scoped_subscription_enabled        = try(each.value.sub.client_scoped_subscription_enabled, false)
-  forward_dead_lettered_messages_to         = try(each.value.sub.forward_dead_lettered_messages_to, null)
-  batched_operations_enabled                = try(each.value.sub.batched_operations_enabled, false)
-  status                                    = try(each.value.sub.status, "Active")
-  forward_to                                = try(each.value.sub.forward_to, null)
+  max_delivery_count                        = each.value.sub.max_delivery_count
+  lock_duration                             = each.value.sub.lock_duration
+  default_message_ttl                       = each.value.sub.default_message_ttl
+  auto_delete_on_idle                       = each.value.sub.auto_delete_on_idle
+  requires_session                          = each.value.sub.requires_session
+  dead_lettering_on_message_expiration      = each.value.sub.dead_lettering_on_message_expiration
+  dead_lettering_on_filter_evaluation_error = each.value.sub.dead_lettering_on_filter_evaluation_error
+  client_scoped_subscription_enabled        = each.value.sub.client_scoped_subscription_enabled
+  forward_dead_lettered_messages_to         = each.value.sub.forward_dead_lettered_messages_to
+  batched_operations_enabled                = each.value.sub.batched_operations_enabled
+  status                                    = each.value.sub.status
+  forward_to                                = each.value.sub.forward_to
 
   dynamic "client_scoped_subscription" {
     for_each = try(each.value.sub.client_scoped_subscription, null) != null ? [each.value.sub.client_scoped_subscription] : []
 
     content {
-      client_id                               = try(client_scoped_subscription.value.client_id, null)
-      is_client_scoped_subscription_shareable = try(client_scoped_subscription.value.is_client_scoped_subscription_shareable, false)
+      client_id                               = client_scoped_subscription.value.client_id
+      is_client_scoped_subscription_shareable = client_scoped_subscription.value.is_client_scoped_subscription_shareable
     }
   }
 }
@@ -222,7 +235,7 @@ resource "azurerm_servicebus_subscription_rule" "rule" {
 
   name            = each.value.rule_name
   subscription_id = azurerm_servicebus_subscription.subscription["${each.value.topic_key}_${each.value.sub_key}"].id
-  filter_type     = try(each.value.rule.filter_type, "SqlFilter")
+  filter_type     = each.value.rule.filter_type
 
   sql_filter = each.value.rule.filter_type == "SqlFilter" ? each.value.rule.sql_filter : null
 
@@ -230,17 +243,17 @@ resource "azurerm_servicebus_subscription_rule" "rule" {
     for_each = each.value.rule.filter_type == "CorrelationFilter" ? [each.value.rule.correlation_filter] : []
 
     content {
-      content_type        = try(correlation_filter.value.content_type, null)
-      correlation_id      = try(correlation_filter.value.correlation_id, null)
-      label               = try(correlation_filter.value.label, null)
-      message_id          = try(correlation_filter.value.message_id, null)
-      reply_to            = try(correlation_filter.value.reply_to, null)
-      reply_to_session_id = try(correlation_filter.value.reply_to_session_id, null)
-      session_id          = try(correlation_filter.value.session_id, null)
-      to                  = try(correlation_filter.value.to, null)
-      properties          = try(correlation_filter.value.properties, {})
+      content_type        = correlation_filter.value.content_type
+      correlation_id      = correlation_filter.value.correlation_id
+      label               = correlation_filter.value.label
+      message_id          = correlation_filter.value.message_id
+      reply_to            = correlation_filter.value.reply_to
+      reply_to_session_id = correlation_filter.value.reply_to_session_id
+      session_id          = correlation_filter.value.session_id
+      to                  = correlation_filter.value.to
+      properties          = correlation_filter.value.properties
     }
   }
 
-  action = try(each.value.rule.action, null)
+  action = each.value.rule.action
 }
