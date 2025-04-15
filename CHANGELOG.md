@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.3.0](https://github.com/CloudNationHQ/terraform-azure-sb/compare/v1.2.0...v1.3.0) (2025-04-15)
+
+
+### Features
+
+* add dynamic configuration for identity, customer managed key, and network rule set in service bus namespace ([#17](https://github.com/CloudNationHQ/terraform-azure-sb/issues/17)) ([946b190](https://github.com/CloudNationHQ/terraform-azure-sb/commit/946b1909598aa6f7bbd1f53b3e27e177088c3369))
+* add type definitions ([#21](https://github.com/CloudNationHQ/terraform-azure-sb/issues/21)) ([0409456](https://github.com/CloudNationHQ/terraform-azure-sb/commit/0409456673e879ca1f6656fed1296fb38f71e060))
+* **deps:** bump github.com/gruntwork-io/terratest in /tests ([#16](https://github.com/CloudNationHQ/terraform-azure-sb/issues/16)) ([d0ee40b](https://github.com/CloudNationHQ/terraform-azure-sb/commit/d0ee40b48d85a68d8cbf4242465edd65f71a7631))
+* **deps:** bump golang.org/x/net from 0.34.0 to 0.36.0 in /tests ([#19](https://github.com/CloudNationHQ/terraform-azure-sb/issues/19)) ([8e2b23d](https://github.com/CloudNationHQ/terraform-azure-sb/commit/8e2b23d937a923116de23ba53df449088613a0e2))
+
 ## [1.2.0](https://github.com/CloudNationHQ/terraform-azure-sb/compare/v1.1.0...v1.2.0) (2025-01-20)
 
 
