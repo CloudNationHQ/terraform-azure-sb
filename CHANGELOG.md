@@ -11,6 +11,11 @@
 
 * small refactor ([#23](https://github.com/CloudNationHQ/terraform-azure-sb/issues/23)) ([8a30da5](https://github.com/CloudNationHQ/terraform-azure-sb/commit/8a30da5a4b75441b0727f703ea2d0c6ef6bf2ba7))
 
+### Upgrade from v1.3.0 to v2.0.0:
+
+- Update module reference to: `version = "~> 2.0"`
+- The property and variable resource_group is renamed to resource_group_name
+
 ## [1.3.0](https://github.com/CloudNationHQ/terraform-azure-sb/compare/v1.2.0...v1.3.0) (2025-04-15)
 
 
