@@ -2,7 +2,7 @@ variable "config" {
   description = "Contains all service bus configuration"
   type = object({
     name                          = string
-    resource_group                = optional(string, null)
+    resource_group_name           = optional(string, null)
     location                      = optional(string, null)
     sku                           = optional(string, "Standard")
     capacity                      = optional(number, null)
@@ -10,7 +10,7 @@ variable "config" {
     public_network_access_enabled = optional(bool, true)
     minimum_tls_version           = optional(string, "1.2")
     local_auth_enabled            = optional(bool, true)
-    tags                          = optional(map(string), null)
+    tags                          = optional(map(string))
     identity = optional(object({
       type         = string
       identity_ids = optional(list(string), null)
@@ -124,7 +124,7 @@ variable "config" {
   }
 
   validation {
-    condition     = var.config.resource_group != null || var.resource_group != null
+    condition     = var.config.resource_group_name != null || var.resource_group_name != null
     error_message = "resource group name must be provided either in the storage object or as a separate variable."
   }
 }
@@ -141,7 +141,7 @@ variable "location" {
   default     = null
 }
 
-variable "resource_group" {
+variable "resource_group_name" {
   description = "default resource group to be used."
   type        = string
   default     = null
