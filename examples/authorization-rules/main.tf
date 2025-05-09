@@ -20,14 +20,14 @@ module "rg" {
 
 module "service_bus" {
   source  = "cloudnationhq/sb/azure"
-  version = "~> 1.0"
+  version = "~> 2.0"
 
   naming = local.naming
 
   config = {
-    name           = module.naming.servicebus_namespace.name_unique
-    resource_group = module.rg.groups.demo.name
-    location       = module.rg.groups.demo.location
+    name                = module.naming.servicebus_namespace.name_unique
+    resource_group_name = module.rg.groups.demo.name
+    location            = module.rg.groups.demo.location
 
     authorization_rules = {
       reader = {
