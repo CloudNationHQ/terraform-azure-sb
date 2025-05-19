@@ -20,6 +20,8 @@ Supports multiple subscription rules per subscription.
 
 Facilitates complex message filtering and routing configurations.
 
+Offers three-tier naming hierarchy (explicit, convention-based, or key-based) for flexible resource management.
+
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 

@@ -70,7 +70,9 @@ resource "azurerm_servicebus_namespace_authorization_rule" "auth_rule" {
   )
 
   name = coalesce(
-    each.value.name, join("-", [var.naming.servicebus_namespace_authorization_rule, each.key])
+    each.value.name, try(
+      join("-", [var.naming.servicebus_namespace_authorization_rule, each.key]), null
+    ), each.key
   )
 
   namespace_id = azurerm_servicebus_namespace.ns.id
@@ -86,7 +88,9 @@ resource "azurerm_servicebus_queue" "queue" {
   )
 
   name = coalesce(
-    each.value.name, join("-", [var.naming.servicebus_queue, each.key])
+    each.value.name, try(
+      join("-", [var.naming.servicebus_queue, each.key]), null
+    ), each.key
   )
 
   namespace_id                            = azurerm_servicebus_namespace.ns.id
@@ -117,7 +121,11 @@ resource "azurerm_servicebus_queue_authorization_rule" "queue_auth_rule" {
           queue_key = queue_key
           rule_key  = rule_key
           rule      = rule
-          rule_name = lookup(rule, "name", null) != null ? rule.name : join("-", [var.naming.servicebus_queue_authorization_rule, rule_key])
+          rule_name = coalesce(
+            rule.name, try(
+              join("-", [var.naming.servicebus_queue_authorization_rule, rule_key]), null
+            ), rule_key
+          )
         }
       ]
     ]) : "${rule.queue_key}_${rule.rule_key}" => rule
@@ -137,7 +145,9 @@ resource "azurerm_servicebus_topic" "topic" {
   )
 
   name = coalesce(
-    each.value.name, join("-", [var.naming.servicebus_topic, each.key])
+    each.value.name, try(
+      join("-", [var.naming.servicebus_topic, each.key]), null
+    ), each.key
   )
 
   namespace_id                            = azurerm_servicebus_namespace.ns.id
@@ -163,7 +173,11 @@ resource "azurerm_servicebus_topic_authorization_rule" "topic_auth_rule" {
           topic_key = topic_key
           rule_key  = rule_key
           rule      = rule
-          rule_name = lookup(rule, "name", null) != null ? rule.name : join("-", [var.naming.servicebus_topic_authorization_rule, rule_key])
+          rule_name = coalesce(
+            rule.name, try(
+              join("-", [var.naming.servicebus_topic_authorization_rule, rule_key]), null
+            ), rule_key
+          )
         }
       ]
     ]) : "${rule.topic_key}_${rule.rule_key}" => rule
@@ -185,7 +199,11 @@ resource "azurerm_servicebus_subscription" "subscription" {
           topic_key = topic_key
           sub_key   = sub_key
           sub       = sub
-          sub_name  = lookup(sub, "name", null) != null ? sub.name : join("-", [var.naming.servicebus_subscription, sub_key])
+          sub_name = coalesce(
+            sub.name, try(
+              join("-", [var.naming.servicebus_subscription, sub_key]), null
+            ), sub_key
+          )
         }
       ]
     ]) : "${sub.topic_key}_${sub.sub_key}" => sub
@@ -227,7 +245,11 @@ resource "azurerm_servicebus_subscription_rule" "rule" {
           sub_key   = sub_key
           rule_key  = rule_key
           rule      = rule
-          rule_name = lookup(rule, "name", null) != null ? rule.name : join("-", [var.naming.servicebus_subscription_rule, rule_key])
+          rule_name = coalesce(
+            rule.name, try(
+              join("-", [var.naming.servicebus_subscription_rule, rule_key]), null
+            ), rule_key
+          )
         }]
       ]
     ]) : "${rule.topic_key}_${rule.sub_key}_${rule.rule_key}" => rule
