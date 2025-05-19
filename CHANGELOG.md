@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.0](https://github.com/CloudNationHQ/terraform-azure-sb/compare/v2.0.0...v2.1.0) (2025-05-19)
+
+
+### Features
+
+* implement flexible resource naming ([#25](https://github.com/CloudNationHQ/terraform-azure-sb/issues/25)) ([8f18040](https://github.com/CloudNationHQ/terraform-azure-sb/commit/8f18040cf33ad3450bbe13e6ca70f0abb37ac358))
+
 ## [2.0.0](https://github.com/CloudNationHQ/terraform-azure-sb/compare/v1.3.0...v2.0.0) (2025-05-09)
 
 
