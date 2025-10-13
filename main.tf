@@ -48,11 +48,13 @@ resource "azurerm_servicebus_namespace" "ns" {
       ip_rules                      = network_rule_set.value.ip_rules
 
       dynamic "network_rules" {
-        for_each = try(network_rule_set.value.network_rules, [])
+        for_each = try(
+          network_rule_set.value.network_rules, []
+        )
 
         content {
-          subnet_id                            = network_rule.value.subnet_id
-          ignore_missing_vnet_service_endpoint = network_rule.value.ignore_missing_vnet_service_endpoint
+          subnet_id                            = network_rules.value.subnet_id
+          ignore_missing_vnet_service_endpoint = network_rules.value.ignore_missing_vnet_service_endpoint
         }
       }
     }
