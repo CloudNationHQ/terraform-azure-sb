@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.2.0](https://github.com/CloudNationHQ/terraform-azure-sb/compare/v2.1.0...v2.2.0) (2025-10-13)
+
+
+### Features
+
+* **deps:** bump github.com/cloudnationhq/az-cn-go-validor in /tests ([#32](https://github.com/CloudNationHQ/terraform-azure-sb/issues/32)) ([2ff6add](https://github.com/CloudNationHQ/terraform-azure-sb/commit/2ff6addec2cac33459ccc0e79b25845369b0ce85))
+* **deps:** bump github.com/ulikunitz/xz from 0.5.10 to 0.5.14 in /tests ([#29](https://github.com/CloudNationHQ/terraform-azure-sb/issues/29)) ([5f033b3](https://github.com/CloudNationHQ/terraform-azure-sb/commit/5f033b320d7e5111cccdecb05bf6ec1df5432551))
+* remove explicit null defaults from optional variables and fix network rules iterator ([#33](https://github.com/CloudNationHQ/terraform-azure-sb/issues/33)) ([e3a063a](https://github.com/CloudNationHQ/terraform-azure-sb/commit/e3a063afd1dc1506ad3ccd81210ec9ef496956d7))
+
 ## [2.1.0](https://github.com/CloudNationHQ/terraform-azure-sb/compare/v2.0.0...v2.1.0) (2025-05-19)
 
 
