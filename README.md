@@ -223,7 +223,11 @@ The following outputs are exported:
 
 ### <a name="output_config"></a> [config](#output\_config)
 
-Description: contains service bus namespace configuration1
+Description: contains service bus namespace configuration
+
+### <a name="output_namespace_auth_rules"></a> [namespace\_auth\_rules](#output\_namespace\_auth\_rules)
+
+Description: contains service bus namespace authorization rules configuration
 
 ### <a name="output_queue_auth_rules"></a> [queue\_auth\_rules](#output\_queue\_auth\_rules)
 
