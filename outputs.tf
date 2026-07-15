@@ -1,5 +1,5 @@
 output "config" {
-  description = "contains service bus namespace configuration1"
+  description = "contains service bus namespace configuration"
   value       = azurerm_servicebus_namespace.ns
 }
 
@@ -26,4 +26,10 @@ output "topic_auth_rules" {
 output "subscriptions" {
   description = "contains service bus topic subscriptions configuration"
   value       = azurerm_servicebus_subscription.subscription
+}
+
+output "namespace_auth_rules" {
+  description = "contains service bus namespace authorization rules configuration"
+  value       = azurerm_servicebus_namespace_authorization_rule.auth_rule
+  sensitive   = true
 }
