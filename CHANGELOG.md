@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.3.0](https://github.com/CloudNationHQ/terraform-azure-sb/compare/v2.2.0...v2.3.0) (2026-07-20)
+
+
+### Features
+
+* **deps:** bump github.com/cloudnationhq/az-cn-go-validor in /tests ([#38](https://github.com/CloudNationHQ/terraform-azure-sb/issues/38)) ([3c3eee6](https://github.com/CloudNationHQ/terraform-azure-sb/commit/3c3eee6b3289a15107039c87a3bd9b81324515a7))
+* **deps:** bump github.com/cloudnationhq/az-cn-go-validor in /tests ([#44](https://github.com/CloudNationHQ/terraform-azure-sb/issues/44)) ([613f0ab](https://github.com/CloudNationHQ/terraform-azure-sb/commit/613f0abe98adc0421b06989ffa2ade290baee3b2))
+* **deps:** bump golang.org/x/crypto from 0.36.0 to 0.45.0 in /tests ([#37](https://github.com/CloudNationHQ/terraform-azure-sb/issues/37)) ([43383cf](https://github.com/CloudNationHQ/terraform-azure-sb/commit/43383cf37976f3be61dd5fe4ed2b4d36e52a12f8))
+* **deps:** bump golang.org/x/crypto from 0.45.0 to 0.52.0 in /tests ([#42](https://github.com/CloudNationHQ/terraform-azure-sb/issues/42)) ([60e8f35](https://github.com/CloudNationHQ/terraform-azure-sb/commit/60e8f354c11f07ae7eefd7707e0fa42d9f07725f))
+* **deps:** bump golang.org/x/net from 0.54.0 to 0.55.0 in /tests ([#43](https://github.com/CloudNationHQ/terraform-azure-sb/issues/43)) ([b5315b4](https://github.com/CloudNationHQ/terraform-azure-sb/commit/b5315b4578eecea68a8fc9835e9f31bd276657b5))
+* namespace auth rules output ([#40](https://github.com/CloudNationHQ/terraform-azure-sb/issues/40)) ([a9ba769](https://github.com/CloudNationHQ/terraform-azure-sb/commit/a9ba769ac998277fa471a7b8e1a140977e0df3f3))
+
 ## [2.2.0](https://github.com/CloudNationHQ/terraform-azure-sb/compare/v2.1.0...v2.2.0) (2025-10-13)
 
 
