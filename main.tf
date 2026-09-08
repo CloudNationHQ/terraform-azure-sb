@@ -1,26 +1,23 @@
 # namespace
-resource "azurerm_servicebus_namespace" "ns" {
+resource "azurerm_servicebus_namespace" "this" {
   resource_group_name = coalesce(
-    lookup(
-      var.config, "resource_group_name", null
-    ), var.resource_group_name
+    var.servicebus_namespace.resource_group_name, var.resource_group_name
   )
 
   location = coalesce(
-    lookup(var.config, "location", null
-    ), var.location
+    var.servicebus_namespace.location, var.location
   )
 
-  name                          = var.config.name
-  sku                           = var.config.sku
-  capacity                      = var.config.capacity
-  premium_messaging_partitions  = var.config.premium_messaging_partitions
-  public_network_access_enabled = var.config.public_network_access_enabled
-  minimum_tls_version           = var.config.minimum_tls_version
-  local_auth_enabled            = var.config.local_auth_enabled
+  name                          = var.servicebus_namespace.name
+  sku                           = var.servicebus_namespace.sku
+  capacity                      = var.servicebus_namespace.capacity
+  premium_messaging_partitions  = var.servicebus_namespace.premium_messaging_partitions
+  public_network_access_enabled = var.servicebus_namespace.public_network_access_enabled
+  minimum_tls_version           = var.servicebus_namespace.minimum_tls_version
+  local_auth_enabled            = var.servicebus_namespace.local_auth_enabled
 
   dynamic "identity" {
-    for_each = try(var.config.identity, null) != null ? [var.config.identity] : []
+    for_each = var.servicebus_namespace.identity != null ? { "this" = var.servicebus_namespace.identity } : {}
 
     content {
       type         = identity.value.type
@@ -29,7 +26,7 @@ resource "azurerm_servicebus_namespace" "ns" {
   }
 
   dynamic "customer_managed_key" {
-    for_each = try(var.config.customer_managed_key, null) != null ? [var.config.customer_managed_key] : []
+    for_each = var.servicebus_namespace.customer_managed_key != null ? { "this" = var.servicebus_namespace.customer_managed_key } : {}
 
     content {
       key_vault_key_id                  = customer_managed_key.value.key_vault_key_id
@@ -39,7 +36,7 @@ resource "azurerm_servicebus_namespace" "ns" {
   }
 
   dynamic "network_rule_set" {
-    for_each = try(var.config.network_rule_set, null) != null ? [var.config.network_rule_set] : []
+    for_each = var.servicebus_namespace.network_rule_set != null ? { "this" = var.servicebus_namespace.network_rule_set } : {}
 
     content {
       default_action                = network_rule_set.value.default_action
@@ -48,9 +45,7 @@ resource "azurerm_servicebus_namespace" "ns" {
       ip_rules                      = network_rule_set.value.ip_rules
 
       dynamic "network_rules" {
-        for_each = try(
-          network_rule_set.value.network_rules, []
-        )
+        for_each = network_rule_set.value.network_rules
 
         content {
           subnet_id                            = network_rules.value.subnet_id
@@ -61,41 +56,33 @@ resource "azurerm_servicebus_namespace" "ns" {
   }
 
   tags = coalesce(
-    var.config.tags, var.tags
+    var.servicebus_namespace.tags, var.tags
   )
 }
 
 # namespace authorization rules
-resource "azurerm_servicebus_namespace_authorization_rule" "auth_rule" {
-  for_each = lookup(
-    var.config, "authorization_rules", {}
-  )
+resource "azurerm_servicebus_namespace_authorization_rule" "this" {
+  for_each = var.servicebus_namespace.authorization_rules
 
   name = coalesce(
-    each.value.name, try(
-      join("-", [var.naming.servicebus_namespace_authorization_rule, each.key]), null
-    ), each.key
+    each.value.name, each.key
   )
 
-  namespace_id = azurerm_servicebus_namespace.ns.id
+  namespace_id = azurerm_servicebus_namespace.this.id
   listen       = each.value.listen
   send         = each.value.send
   manage       = each.value.manage
 }
 
 # servicebus queues
-resource "azurerm_servicebus_queue" "queue" {
-  for_each = lookup(
-    var.config, "queues", {}
-  )
+resource "azurerm_servicebus_queue" "this" {
+  for_each = var.servicebus_namespace.queues
 
   name = coalesce(
-    each.value.name, try(
-      join("-", [var.naming.servicebus_queue, each.key]), null
-    ), each.key
+    each.value.name, each.key
   )
 
-  namespace_id                            = azurerm_servicebus_namespace.ns.id
+  namespace_id                            = azurerm_servicebus_namespace.this.id
   lock_duration                           = each.value.lock_duration
   max_size_in_megabytes                   = each.value.max_size_in_megabytes
   max_delivery_count                      = each.value.max_delivery_count
@@ -115,18 +102,17 @@ resource "azurerm_servicebus_queue" "queue" {
 }
 
 # servicebus queue authorization rules
-resource "azurerm_servicebus_queue_authorization_rule" "queue_auth_rule" {
+resource "azurerm_servicebus_queue_authorization_rule" "this" {
   for_each = {
     for rule in flatten([
-      for queue_key, queue in lookup(var.config, "queues", {}) : [
-        for rule_key, rule in lookup(queue, "authorization_rules", {}) : {
+      for queue_key, queue in var.servicebus_namespace.queues : [
+        for rule_key, rule in queue.authorization_rules : {
           queue_key = queue_key
           rule_key  = rule_key
           rule      = rule
           rule_name = coalesce(
-            rule.name, try(
-              join("-", [var.naming.servicebus_queue_authorization_rule, rule_key]), null
-            ), rule_key
+            rule.name,
+            rule_key
           )
         }
       ]
@@ -134,25 +120,22 @@ resource "azurerm_servicebus_queue_authorization_rule" "queue_auth_rule" {
   }
 
   name     = each.value.rule_name
-  queue_id = azurerm_servicebus_queue.queue[each.value.queue_key].id
+  queue_id = azurerm_servicebus_queue.this[each.value.queue_key].id
   listen   = each.value.rule.listen
   send     = each.value.rule.send
   manage   = each.value.rule.manage
 }
 
 # servicebus topics
-resource "azurerm_servicebus_topic" "topic" {
-  for_each = lookup(
-    var.config, "topics", {}
-  )
+resource "azurerm_servicebus_topic" "this" {
+  for_each = var.servicebus_namespace.topics
 
   name = coalesce(
-    each.value.name, try(
-      join("-", [var.naming.servicebus_topic, each.key]), null
-    ), each.key
+    each.value.name,
+    each.key
   )
 
-  namespace_id                            = azurerm_servicebus_namespace.ns.id
+  namespace_id                            = azurerm_servicebus_namespace.this.id
   duplicate_detection_history_time_window = each.value.duplicate_detection_history_time_window
   requires_duplicate_detection            = each.value.requires_duplicate_detection
   batched_operations_enabled              = each.value.batched_operations_enabled
@@ -167,18 +150,16 @@ resource "azurerm_servicebus_topic" "topic" {
 }
 
 # servicebus topic authorization rules
-resource "azurerm_servicebus_topic_authorization_rule" "topic_auth_rule" {
+resource "azurerm_servicebus_topic_authorization_rule" "this" {
   for_each = {
     for rule in flatten([
-      for topic_key, topic in lookup(var.config, "topics", {}) : [
-        for rule_key, rule in lookup(topic, "authorization_rules", {}) : {
+      for topic_key, topic in var.servicebus_namespace.topics : [
+        for rule_key, rule in topic.authorization_rules : {
           topic_key = topic_key
           rule_key  = rule_key
           rule      = rule
           rule_name = coalesce(
-            rule.name, try(
-              join("-", [var.naming.servicebus_topic_authorization_rule, rule_key]), null
-            ), rule_key
+            rule.name, rule_key
           )
         }
       ]
@@ -186,25 +167,23 @@ resource "azurerm_servicebus_topic_authorization_rule" "topic_auth_rule" {
   }
 
   name     = each.value.rule_name
-  topic_id = azurerm_servicebus_topic.topic[each.value.topic_key].id
+  topic_id = azurerm_servicebus_topic.this[each.value.topic_key].id
   listen   = each.value.rule.listen
   send     = each.value.rule.send
   manage   = each.value.rule.manage
 }
 
 # service bus topic subscriptions
-resource "azurerm_servicebus_subscription" "subscription" {
+resource "azurerm_servicebus_subscription" "this" {
   for_each = {
     for sub in flatten([
-      for topic_key, topic in lookup(var.config, "topics", {}) : [
-        for sub_key, sub in lookup(topic, "subscriptions", {}) : {
+      for topic_key, topic in var.servicebus_namespace.topics : [
+        for sub_key, sub in topic.subscriptions : {
           topic_key = topic_key
           sub_key   = sub_key
           sub       = sub
           sub_name = coalesce(
-            sub.name, try(
-              join("-", [var.naming.servicebus_subscription, sub_key]), null
-            ), sub_key
+            sub.name, sub_key
           )
         }
       ]
@@ -212,7 +191,7 @@ resource "azurerm_servicebus_subscription" "subscription" {
   }
 
   name                                      = each.value.sub_name
-  topic_id                                  = azurerm_servicebus_topic.topic[each.value.topic_key].id
+  topic_id                                  = azurerm_servicebus_topic.this[each.value.topic_key].id
   max_delivery_count                        = each.value.sub.max_delivery_count
   lock_duration                             = each.value.sub.lock_duration
   default_message_ttl                       = each.value.sub.default_message_ttl
@@ -227,7 +206,7 @@ resource "azurerm_servicebus_subscription" "subscription" {
   forward_to                                = each.value.sub.forward_to
 
   dynamic "client_scoped_subscription" {
-    for_each = try(each.value.sub.client_scoped_subscription, null) != null ? [each.value.sub.client_scoped_subscription] : []
+    for_each = each.value.sub.client_scoped_subscription != null ? { "this" = each.value.sub.client_scoped_subscription } : {}
 
     content {
       client_id                               = client_scoped_subscription.value.client_id
@@ -237,20 +216,18 @@ resource "azurerm_servicebus_subscription" "subscription" {
 }
 
 # service bus subscription rules
-resource "azurerm_servicebus_subscription_rule" "rule" {
+resource "azurerm_servicebus_subscription_rule" "this" {
   for_each = {
     for rule in flatten([
-      for topic_key, topic in lookup(var.config, "topics", {}) :
-      [for sub_key, sub in lookup(topic, "subscriptions", {}) :
-        [for rule_key, rule in lookup(sub, "rules", {}) : {
+      for topic_key, topic in var.servicebus_namespace.topics :
+      [for sub_key, sub in topic.subscriptions :
+        [for rule_key, rule in sub.rules : {
           topic_key = topic_key
           sub_key   = sub_key
           rule_key  = rule_key
           rule      = rule
           rule_name = coalesce(
-            rule.name, try(
-              join("-", [var.naming.servicebus_subscription_rule, rule_key]), null
-            ), rule_key
+            rule.name, rule_key
           )
         }]
       ]
@@ -258,13 +235,13 @@ resource "azurerm_servicebus_subscription_rule" "rule" {
   }
 
   name            = each.value.rule_name
-  subscription_id = azurerm_servicebus_subscription.subscription["${each.value.topic_key}_${each.value.sub_key}"].id
+  subscription_id = azurerm_servicebus_subscription.this["${each.value.topic_key}_${each.value.sub_key}"].id
   filter_type     = each.value.rule.filter_type
 
   sql_filter = each.value.rule.filter_type == "SqlFilter" ? each.value.rule.sql_filter : null
 
   dynamic "correlation_filter" {
-    for_each = each.value.rule.filter_type == "CorrelationFilter" ? [each.value.rule.correlation_filter] : []
+    for_each = each.value.rule.filter_type == "CorrelationFilter" && each.value.rule.correlation_filter != null ? { "this" = each.value.rule.correlation_filter } : {}
 
     content {
       content_type        = correlation_filter.value.content_type
